@@ -10,7 +10,7 @@
 
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
-
+#include "Interface/IHeater.h"
 
 class IConfig
 {
@@ -38,33 +38,17 @@ public:
 	HeaterConfig* GetHeaterConfig();
 };
 
-class IStatus
-{
-public:
-	enum class HeaterAlert
-	{
-		TEMP_HIGH_ALARM = 0,
-		TEMP_LOW_ALARM = 1,
-		HEATER_ON_TIME = 2,
-		HEATER_FAILED = 3
-	};
 
-	void Alert(HeaterAlert alert);
-	bool HeaterOk();
-	void HeaterOn();
-	void HeaterOff();
-	int Temperature();
-};
 
 class LxHeater
 {
 public:
-	void Start(IConfig* config, IStatus* status);
+	void Start(IHeaterConfig* config, IHeaterStatus* status);
 
 	void Task();
 private:
-	IConfig* _config;
-	IStatus* _status;
+	IHeaterConfig* _config;
+	IHeaterStatus* _status;
 	bool _heaterOn;
 	unsigned int _heaterOnTime;
 	unsigned int _heaterHysteresisCount;

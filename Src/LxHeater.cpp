@@ -7,7 +7,7 @@
 
 #include "LxHeater.h"
 
-void LxHeater::Start(IConfig* config, IStatus* status)
+void LxHeater::Start(IHeaterConfig* config, IHeaterStatus* status)
 {
 	_config = config;
 	_status = status;
@@ -21,13 +21,13 @@ void LxHeater::Task()
 	//Todo: Get all variable one in task
     while (true) {
 		if (!_status->HeaterOk()) {
-			_status->Alert(IStatus::HeaterAlert::HEATER_FAILED);
+			_status->Alert(IHeaterStatus::HeaterAlert::HEATER_FAILED);
 		}
 		if (_heaterOn && (_heaterOnTime < _config->GetHeaterConfig()->heaterMaxOnTimeSec)) {
 			_heaterOnTime++;
 		}
 		if (_heaterOnTime >= _config->GetHeaterConfig()->heaterMaxOnTimeSec) {
-			_status->Alert(IStatus::HeaterAlert::HEATER_ON_TIME);
+			_status->Alert(IHeaterStatus::HeaterAlert::HEATER_ON_TIME);
 		}
 
 		_heaterHysteresisCount++;
@@ -37,13 +37,13 @@ void LxHeater::Task()
 			if (_status->Temperature() < _config->GetHeaterConfig()->heaterLow) {
 				_status->HeaterOn();
 				if (_status->Temperature() < _config->GetHeaterConfig()->heaterLowAlert) {
-					_status->Alert(IStatus::HeaterAlert::TEMP_LOW_ALARM);
+					_status->Alert(IHeaterStatus::HeaterAlert::TEMP_LOW_ALARM);
 				}
 			}
 			else if (_status->Temperature() > _config->GetHeaterConfig()->heaterHigh) {
 				_status->HeaterOff();
 				if (_status->Temperature() > _config->GetHeaterConfig()->heaterHighAlert) {
-					_status->Alert(IStatus::HeaterAlert::TEMP_HIGH_ALARM);
+					_status->Alert(IHeaterStatus::HeaterAlert::TEMP_HIGH_ALARM);
 				}
 			}
 		}

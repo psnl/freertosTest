@@ -51,6 +51,8 @@
 #include "main.h"
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
+#include "L2Config.h"
+#include "LxHeater.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -74,6 +76,8 @@ osStaticTimerDef_t timerLedControlBlock;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 L2Status l2Status;
+L2Config l2Config;
+LxHeater lxHeater;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -344,6 +348,7 @@ void StartDefaultTask(void const * argument)
 {
   l2Status.Start();
 
+  lxHeater.Start((IHeaterConfig*)&l2Config, (IHeaterStatus*)&l2Status);
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)

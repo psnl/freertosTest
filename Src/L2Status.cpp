@@ -14,8 +14,8 @@ void L2Status::Start()
 	state = State::NOT_INITED;
 	stateTime = L1Timer::GetCurrentTime();
 	pL2Status = this;
-	l1Timer.Start("L2Status", 100, [pL2Status]() {pL2Status->Update();});
-	//l1Timer.Start("L2Status", 100, [this]() {L1Gpio::Led(L1Gpio::Action::TOGGLE);});
+	//l1Timer.Start("L2Status", 100, [pL2Status]() {pL2Status->Update();});
+	l1Timer.Start("L2Status", 100, [this]() {L1Gpio::Led(L1Gpio::Action::TOGGLE);});
 	//l1Timer.Start("L2Status", 100, nullptr);
 }
 

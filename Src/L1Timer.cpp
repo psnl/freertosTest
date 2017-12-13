@@ -6,24 +6,31 @@
  */
 
 #include <L1Timer.h>
-static L1Timer* pL1Timer;
+static TimerHandle_t timerHandle;
 
 void L1Timer::Start(const char* name, L1Time ulPeriodicTimeMs, std::function<void()> execute)
 {
-	osTimerDef(name, TimerCallback);
 	_execute = execute;
-	pL1Timer = this;
-	_timerHandle = osTimerCreate(osTimer(name), osTimerPeriodic, pL1Timer);
+	//pL1Timer = this;
+	timerHandle = xTimerCreateStatic(name, 100, pdTRUE, this,  TimerCallback, &_timerBuffer);
+	//vTimerSetTimerID(timerHandle, this);
 
-	osTimerStart(_timerHandle, ulPeriodicTimeMs);
+	xTimerStart(timerHandle, 0);
 }
 
-void L1Timer::TimerCallback(void const * argument)
+void L1Timer::TimerCallback(TimerHandle_t pTimerHandle)
 {
-
-	//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	//L1Timer* pL1Timer = (L1Timer*)pvTimerGetTimerID(pTimerHandle);
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     //((L1Timer*)argument)->_execute();
-    pL1Timer->_execute();
+    //pL1Timer->_execute();
+
+	uint32_t ulRef = 2048;
+	uint32_t ulMeasured = 1651;
+	uint32_t ulMax = 4095;
+
+	uint32_t ulValue = (ulMeasured * ulRef) / ulMax;
+
 }
 
 

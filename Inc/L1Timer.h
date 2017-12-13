@@ -20,10 +20,11 @@ public:
 
 	void Start(const char* name, L1Time periodicTimeMs, std::function<void()> execute);
 	static bool TimePassed(L1Time timePassed, L1Time timeSince);
-	static void TimerCallback(void const * argument);
+	static void TimerCallback(TimerHandle_t pTimerHandle);
 	static L1Time GetCurrentTime();
 private:
-	osTimerId _timerHandle;
+	StaticTimer_t _timerBuffer;
+	TimerHandle_t _timerHandle;
 	std::function<void()> _execute;
 };
 

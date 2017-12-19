@@ -419,7 +419,9 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
 	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 20);
-    osDelay(1);
+    osDelay(2000);
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 12);
+    osDelay(2000);
   }
   /* USER CODE END 5 */ 
 }

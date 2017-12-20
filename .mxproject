@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/Patric/eclipse-workspace/STM32F103C8/Inc
+HeaderPath=C:/Users/patrics/eclipse-workspace/freertosTest/Inc
 HeaderFiles=FreeRTOSConfig.h;usb_device.h;usbd_conf.h;usbd_desc.h;usbd_dfu_if.h;stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;usbd_storage_if.h;
-SourcePath=C:/Users/Patric/eclipse-workspace/STM32F103C8/Src
+SourcePath=C:/Users/patrics/eclipse-workspace/freertosTest/Src
 SourceFiles=freertos.c;usb_device.c;usbd_conf.c;usbd_desc.c;usbd_dfu_if.c;stm32f1xx_it.c;stm32f1xx_hal_msp.c;stm32f1xx_hal_timebase_TIM.c;main.c;usbd_storage_if.c;
 
 [PreviousLibFiles]

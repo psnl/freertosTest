@@ -301,7 +301,7 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 1200;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 1000;
+  htim4.Init.Period = 800;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -418,9 +418,9 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 20);
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80);
     osDelay(2000);
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 12);
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40);
     osDelay(2000);
   }
   /* USER CODE END 5 */ 

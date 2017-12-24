@@ -418,10 +418,17 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80);
-    osDelay(2000);
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40);
-    osDelay(2000);
+	//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80); // 2
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
+  osDelay(2000);
+	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 21);
+  osDelay(2000);
+	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
+  osDelay(2000);
+//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
+__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 21);
+  osDelay(2000);
   }
   /* USER CODE END 5 */ 
 }

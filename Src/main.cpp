@@ -331,6 +331,18 @@ static void MX_TIM4_Init(void)
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -415,20 +427,39 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
   for(;;)
   {
 	//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80); // 2
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
-  osDelay(2000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
+  osDelay(1000);
 	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 21);
-  osDelay(2000);
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
-  osDelay(2000);
-//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
-__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 21);
-  osDelay(2000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
+  osDelay(1000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
+  osDelay(1000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 25);
+  osDelay(1000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 100);
+  osDelay(1000);
+//  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 100);
+//  osDelay(1000);
+//  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 25);
+//  osDelay(1000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
+  osDelay(1000);
+	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
+  osDelay(1000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
+  osDelay(1000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 25);
+  osDelay(1000);
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
+  osDelay(1000);
   }
   /* USER CODE END 5 */ 
 }

@@ -301,7 +301,7 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 1200;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 800;
+  htim4.Init.Period = 2000;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -412,6 +412,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : TOUCH_Pin */
+  GPIO_InitStruct.Pin = TOUCH_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(TOUCH_GPIO_Port, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
@@ -433,33 +439,40 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-	//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80); // 2
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
-  osDelay(1000);
-	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
-  osDelay(1000);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
-  osDelay(1000);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 25);
-  osDelay(1000);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 100);
-  osDelay(1000);
-//  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 100);
-//  osDelay(1000);
-//  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 25);
-//  osDelay(1000);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
-  osDelay(1000);
-	//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
-  osDelay(1000);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
-  osDelay(1000);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 25);
-  osDelay(1000);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
-  osDelay(1000);
+	  if (HAL_GPIO_ReadPin(TOUCH_GPIO_Port, TOUCH_Pin) == GPIO_PIN_SET)
+	  {
+		//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80); // 2
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
+	  osDelay(1000);
+		//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
+	  osDelay(1000);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
+	  osDelay(1000);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 25);
+	  osDelay(1000);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 100);
+	  osDelay(1000);
+	//  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 100);
+	//  osDelay(1000);
+	//  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 25);
+	//  osDelay(1000);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
+	  osDelay(1000);
+		//__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 40); // 1
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
+	  osDelay(1000);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
+	  osDelay(1000);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 25);
+	  osDelay(1000);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
+	  osDelay(1000);
+	  }
+	  else
+	  {
+		  osDelay(100);
+	  }
   }
   /* USER CODE END 5 */ 
 }

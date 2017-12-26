@@ -59,6 +59,8 @@
 
 #define LED_Pin GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
+#define TOUCH_Pin GPIO_PIN_11
+#define TOUCH_GPIO_Port GPIOB
 
 /* ########################## Assert Selection ############################## */
 /**

@@ -53,18 +53,22 @@
 #include "cmsis_os.h"
 #include "L2Config.h"
 #include "LxHeater.h"
+#include <stdio.h>
+#include <string.h>
 
 /* USER CODE BEGIN Includes */
-
+#define VEML_ADDRESS 0x10<<1
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+I2C_HandleTypeDef hi2c2;
+
 TIM_HandleTypeDef htim4;
 
-PCD_HandleTypeDef hpcd_USB_FS;
+UART_HandleTypeDef huart1;
 
 osThreadId defaultTaskHandle;
 uint32_t defaultTaskBuffer[ 128 ];
@@ -87,8 +91,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_USB_PCD_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_I2C2_Init(void);
+static void MX_USART1_UART_Init(void);
 void StartDefaultTask(void const * argument);
 void ExtraWork(void const * argument);
 void LedCallback(void const * argument);
@@ -104,6 +109,8 @@ extern "C" void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
+char buffer[100];
+
 
 int main(void)
 {
@@ -132,8 +139,9 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
-  MX_USB_PCD_Init();
   MX_TIM4_Init();
+  MX_I2C2_Init();
+  MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 2 */
 
@@ -229,9 +237,8 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_USB;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
   PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV8;
-  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -290,6 +297,26 @@ static void MX_ADC1_Init(void)
 
 }
 
+/* I2C2 init function */
+static void MX_I2C2_Init(void)
+{
+
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* TIM4 init function */
 static void MX_TIM4_Init(void)
 {
@@ -335,14 +362,17 @@ static void MX_TIM4_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -352,18 +382,19 @@ static void MX_TIM4_Init(void)
 
 }
 
-/* USB init function */
-static void MX_USB_PCD_Init(void)
+/* USART1 init function */
+static void MX_USART1_UART_Init(void)
 {
 
-  hpcd_USB_FS.Instance = USB;
-  hpcd_USB_FS.Init.dev_endpoints = 8;
-  hpcd_USB_FS.Init.speed = PCD_SPEED_FULL;
-  hpcd_USB_FS.Init.ep0_mps = DEP0CTL_MPS_8;
-  hpcd_USB_FS.Init.low_power_enable = DISABLE;
-  hpcd_USB_FS.Init.lpm_enable = DISABLE;
-  hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
-  if (HAL_PCD_Init(&hpcd_USB_FS) != HAL_OK)
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -400,8 +431,8 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
@@ -437,10 +468,25 @@ void StartDefaultTask(void const * argument)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
+  //HAL_I2C_Mem_Read(&hi2c2, 0x10, 0x0)
+  uint16_t dataI2c = 0x00;
+  HAL_I2C_Mem_Write(&hi2c2, VEML_ADDRESS, 0x00, 1, (uint8_t*)&dataI2c, 2, 1000);
+  //dataI2c = 0x1;
+  //HAL_I2C_Mem_Write(&hi2c2, VEML_ADDRESS, 0x0, 1, (uint8_t*)&dataI2c, 2, 1000);
+  //dataI2c = 0x2;
+  //HAL_I2C_Mem_Write(&hi2c2, VEML_ADDRESS, 0x0, 1, (uint8_t*)&dataI2c, 2, 1000);
+  uint16_t colorRed = 0;
+  uint16_t colorGreen = 0;
+  uint16_t colorBlue = 0;
+  uint16_t colorWhite = 0;
+  sprintf(buffer, "Hallo\r\n");
+  HAL_UART_Transmit(&huart1, (uint8_t*)buffer, 7, 1000);
   for(;;)
   {
-	  if (HAL_GPIO_ReadPin(TOUCH_GPIO_Port, TOUCH_Pin) == GPIO_PIN_SET)
+	  //if (HAL_GPIO_ReadPin(TOUCH_GPIO_Port, TOUCH_Pin) == GPIO_PIN_SET)
+	  if (false)
 	  {
+		  /*
 		//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80); // 2
 	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
 	  osDelay(1000);
@@ -468,10 +514,18 @@ void StartDefaultTask(void const * argument)
 	  osDelay(1000);
 	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
 	  osDelay(1000);
+	  */
+
 	  }
 	  else
 	  {
-		  osDelay(100);
+		  osDelay(1000);
+		  HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0x8, 1, (uint8_t*)&colorRed, 2, 1000);
+		  HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0x9, 1, (uint8_t*)&colorGreen, 2, 1000);
+		  HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0xa, 1, (uint8_t*)&colorBlue, 2, 1000);
+		  HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0xb, 1, (uint8_t*)&colorWhite, 2, 1000);
+		  sprintf(buffer, "R %u, G %u, B %u, W %u\r\n", colorRed, colorGreen, colorBlue, colorWhite);
+		  HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), 1000);
 	  }
   }
   /* USER CODE END 5 */ 

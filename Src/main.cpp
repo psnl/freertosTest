@@ -452,7 +452,105 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+enum Color
+{
+	RED,
+	GREEN,
+	BLUE,
+	YELLOW,
+	ORANGE,
+	BROWN,
+	UNKNOWN
+};
 
+
+Color GetColor()
+{
+	uint16_t colorRed = 0;
+	uint16_t colorGreen = 0;
+	uint16_t colorBlue = 0;
+	uint16_t colorWhite = 0;
+
+	HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0x8, 1, (uint8_t*)&colorRed, 2, 1000);
+	HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0x9, 1, (uint8_t*)&colorGreen, 2, 1000);
+	HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0xa, 1, (uint8_t*)&colorBlue, 2, 1000);
+	HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0xb, 1, (uint8_t*)&colorWhite, 2, 1000);
+
+	colorRed = colorRed*200/colorWhite;
+	colorGreen = colorGreen*300/colorWhite;
+	colorBlue = colorBlue*600/colorWhite;
+
+	sprintf(buffer, "%u,%u,%u,%u\r\n", colorRed, colorGreen, colorBlue, colorWhite);
+	HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), 1000);
+
+	if (colorWhite > 6000)
+	{
+		if ((colorGreen-50) > colorRed)
+		{
+			return YELLOW;
+		}
+		else
+		{
+			return ORANGE;
+		}
+	}
+	else if ((colorWhite > 500) && (colorWhite < 2000))
+	{
+		return BROWN;
+	}
+	else if (colorWhite > 2000)
+	{
+		if ((colorRed > colorGreen) && (colorRed > colorBlue))
+		{
+			return RED;
+		}
+		else if ((colorGreen > colorBlue))
+		{
+			return GREEN;
+		}
+		else if ((colorBlue > colorGreen))
+		{
+			return BLUE;
+		}
+	}
+
+	return UNKNOWN;
+}
+
+void SelectColor(Color color)
+{
+	switch (color)
+	{
+	case RED:
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 120);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 100);
+		break;
+	case GREEN:
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 90);
+		break;
+	case BLUE:
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 100);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 40);
+		break;
+	case YELLOW:
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 40);
+		break;
+	case ORANGE:
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 68);
+		break;
+	case BROWN:
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 100);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 68);
+		break;
+	case UNKNOWN:
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 60);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 68);
+		break;
+	}
+}
 /* USER CODE END 4 */
 
 /* StartDefaultTask function */
@@ -468,24 +566,39 @@ void StartDefaultTask(void const * argument)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
-  //HAL_I2C_Mem_Read(&hi2c2, 0x10, 0x0)
   uint16_t dataI2c = 0x00;
   HAL_I2C_Mem_Write(&hi2c2, VEML_ADDRESS, 0x00, 1, (uint8_t*)&dataI2c, 2, 1000);
-  //dataI2c = 0x1;
-  //HAL_I2C_Mem_Write(&hi2c2, VEML_ADDRESS, 0x0, 1, (uint8_t*)&dataI2c, 2, 1000);
-  //dataI2c = 0x2;
-  //HAL_I2C_Mem_Write(&hi2c2, VEML_ADDRESS, 0x0, 1, (uint8_t*)&dataI2c, 2, 1000);
-  uint16_t colorRed = 0;
-  uint16_t colorGreen = 0;
-  uint16_t colorBlue = 0;
-  uint16_t colorWhite = 0;
-  sprintf(buffer, "Hallo\r\n");
+
+  sprintf(buffer, "M&M color sorter started\r\n");
   HAL_UART_Transmit(&huart1, (uint8_t*)buffer, 7, 1000);
+  Color color = UNKNOWN;
+
   for(;;)
   {
-	  //if (HAL_GPIO_ReadPin(TOUCH_GPIO_Port, TOUCH_Pin) == GPIO_PIN_SET)
-	  if (false)
+	  if (HAL_GPIO_ReadPin(TOUCH_GPIO_Port, TOUCH_Pin) == GPIO_PIN_SET)
 	  {
+//		  SelectColor(Color::RED);
+//		  osDelay(1000);
+//		  SelectColor(Color::GREEN);
+//		  osDelay(1000);
+//		  SelectColor(Color::BLUE);
+//		  osDelay(1000);
+//		  SelectColor(Color::YELLOW);
+//		  osDelay(1000);
+//		  SelectColor(Color::ORANGE);
+//		  osDelay(1000);
+//		  SelectColor(Color::BROWN);
+//		  osDelay(2000);
+		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 25);
+		  osDelay(1000);
+		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 50);
+		  osDelay(1000);
+		  color = GetColor();
+		  SelectColor(color);
+		  osDelay(1000);
+		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
+		  osDelay(1000);
+
 		  /*
 		//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80); // 2
 	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);
@@ -519,17 +632,15 @@ void StartDefaultTask(void const * argument)
 	  }
 	  else
 	  {
-		  osDelay(1000);
-		  HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0x8, 1, (uint8_t*)&colorRed, 2, 1000);
-		  HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0x9, 1, (uint8_t*)&colorGreen, 2, 1000);
-		  HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0xa, 1, (uint8_t*)&colorBlue, 2, 1000);
-		  HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0xb, 1, (uint8_t*)&colorWhite, 2, 1000);
-		  sprintf(buffer, "R %u, G %u, B %u, W %u\r\n", colorRed, colorGreen, colorBlue, colorWhite);
-		  HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), 1000);
+//		  osDelay(1000);
+//		  color = GetColor();
+//		  SelectColor(color);
 	  }
   }
   /* USER CODE END 5 */ 
 }
+
+
 
 /* ExtraWork function */
 void ExtraWork(void const * argument)

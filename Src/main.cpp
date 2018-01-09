@@ -634,32 +634,36 @@ void StartDefaultTask(void const * argument)
   HAL_UART_Transmit(&huart1, (uint8_t*)buffer, 7, 1000);
   Color color = UNKNOWN;
 
+  // Top fetch
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
+  osDelay(800);
+  // Top drop
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80);
+  osDelay(800);
   for(;;)
   {
 	  if (HAL_GPIO_ReadPin(TOUCH_GPIO_Port, TOUCH_Pin) == GPIO_PIN_SET)
 	  {
-		  // Top open
-		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
-		  osDelay(1000);
-		  // Top close
-		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80);
-		  osDelay(1000);
 		  // Midle open
 		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 25);
-		  osDelay(1000);
+		  osDelay(800);
 		  // Middle meaure
 		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 50);
+		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 25);
 		  // Set unkown
 		  SelectColor(Color::UNKNOWN);
 		  osDelay(500);
+		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80);
 		  color = GetColor();
-		  SelectColor(color, false);
-		  osDelay(500);
-		  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
-		  osDelay(1000);
-		  SelectColor(color);
-		  osDelay(1000);
-
+		  if (color != Color::UNKNOWN)
+		  {
+			  SelectColor(color, false);
+			  osDelay(500);
+			  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 100);
+			  osDelay(800);
+			  SelectColor(color);
+			  osDelay(800);
+		  }
 		  /*
 		//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 80); // 2
 	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 100);

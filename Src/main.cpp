@@ -111,42 +111,20 @@ extern "C" void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
-char buffer[100];
+static char buffer[100];
 
 
-#define NN_INPUTS 4
+#define NN_INPUTS 3
 #define NN_OUTPUTS 7
 
-//New synaptic weights after training:
-//[[ -47.35089345  -24.63222218  -59.21599592  -25.56931986   76.77853135   31.12939791 -103.54337726]
-// [ -13.98105245  -23.42661049  138.61228931  -24.48080183 -153.19354046    6.02166287   28.26860691]
-// [ -56.34916047   -9.38341148  -41.86215374   -9.55725783  -16.88586002   28.49674502  125.64577683]
-// [  41.06440983  -45.57299539  -62.3425506   -44.46980062   12.29234919  -35.99428284  -15.42447511]]
-
-// 4 rows (inputs), 7 columns (outputs)
-//const float32_t weights[NN_INPUTS][NN_OUTPUTS] = {
-//		{-47.35089345,-24.63222218,-59.21599592,-25.56931986,76.77853135,31.12939791,-103.54337726},
-//		{-13.98105245,-23.42661049,138.61228931,-24.48080183,-153.19354046,6.02166287,28.26860691},
-//		{-56.34916047,-9.38341148,-41.86215374,-9.55725783,-16.88586002,28.49674502,125.64577683},
-//		{41.06440983,-45.57299539,-62.3425506,-44.46980062,12.29234919,-35.99428284,-15.42447511}
-//};
-
-//New synaptic weights after training:
-//[[-236.74453983  -32.67928928  -99.22864567  -33.57420597  169.18924829
-//    43.1275596  -175.35602226]
-// [ -76.13114675  -30.9896174   245.66804467  -32.03968971 -276.41118994
-//     5.72043396   62.65210549]
-// [-232.564032    -12.39999393  -46.6093097   -12.60142124  -22.29661383
-//    49.33386959  223.67313328]
-// [ 225.21390689  -60.17146292 -120.25086101  -59.08975195    0.37958931
-//   -49.04452606  -39.73057214]]
 const float32_t weights[NN_INPUTS][NN_OUTPUTS] = {
-		{-236.74453983,-32.67928928,-99.22864567,-33.57420597,169.18924829,43.1275596,-175.35602226},
-		{-76.13114675,-30.9896174,245.66804467,-32.03968971,-276.41118994,5.72043396,62.65210549},
-		{-232.564032,-12.39999393,-46.6093097,-12.60142124,-22.29661383,49.33386959,223.67313328},
-		{225.21390689,-60.17146292,-120.25086101,-59.08975195,0.37958931,-49.04452606,-39.73057214}
+	{-1.11849198e-02,3.56271898e-02,-7.65483824e-02,2.13307251e-02,5.06203963e-02,1.63295386e-06,-6.36056948e-02},
+	{5.94595183e-03,6.57676312e-02,6.57660678e-02,-1.71363030e-03,-8.29492778e-02,1.83595920e-04,1.07288641e-02},
+	{-1.11536215e-02,-3.47855075e-01,-3.54054451e-02,-6.67538237e-02,-4.86566623e-03,-3.26143028e-03,6.26098911e-02}
 };
 
+const float32_t intercept[NN_OUTPUTS] =
+	{6.03650442e+00,-1.08811510e-02,-1.07133471e-03,-1.17112389e+01,-7.59466346e-04,-1.85713751e-06,-6.31466695e-04};
 
 int main(void)
 {
@@ -506,23 +484,21 @@ struct TOutputData
 
 Color Neural(float32_t red, float32_t green, float32_t blue, float32_t white, TOutputData* ptOutputData)
 {
-	/*
-	New synaptic weights after training:
-	[[ -47.35089345  -24.63222218  -59.21599592  -25.56931986   76.77853135   31.12939791 -103.54337726]
-	 [ -13.98105245  -23.42661049  138.61228931  -24.48080183 -153.19354046    6.02166287   28.26860691]
-	 [ -56.34916047   -9.38341148  -41.86215374   -9.55725783  -16.88586002   28.49674502  125.64577683]
-	 [  41.06440983  -45.57299539  -62.3425506   -44.46980062   12.29234919  -35.99428284  -15.42447511]]
-	*/
+	// sigmoid( np.dot([1567,1421,531], np.array(logreg.coef_).transpose()) + logreg.intercept_ )
 	float32_t product[NN_OUTPUTS];
 	for (int column=0; column<NN_OUTPUTS; column++) {
-		product[column] = red * weights[0][column] + green * weights[1][column] + blue * weights[2][column] + white * weights[3][column];
+		product[column] = red * weights[0][column] + green * weights[1][column] + blue * weights[2][column];
 	}
 
+	float addIntercept[NN_OUTPUTS];
+	for (int column=0; column<NN_OUTPUTS; column++) {
+		addIntercept[column] = product[column] + intercept[column];
+	}
     //def __sigmoid(self, x):
     //    return 1 / (1 + exp(-x))
 	float32_t sigmoidOut[NN_OUTPUTS];
 	for (int column=0; column<NN_OUTPUTS; column++) {
-		sigmoidOut[column] = (1 / (1 + exp(-product[column])));
+		sigmoidOut[column] = (1 / (1 + exp(-addIntercept[column])));
 	}
 
 	int index = 0;
@@ -551,63 +527,19 @@ Color GetColor()
 	uint16_t colorGreenRaw = 0;
 	uint16_t colorBlueRaw = 0;
 	uint16_t colorWhiteRaw = 0;
-	uint16_t colorRed = 0;
-	uint16_t colorGreen = 0;
-	uint16_t colorBlue = 0;
 
 	HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0x8, 1, (uint8_t*)&colorRedRaw, 2, 1000);
 	HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0x9, 1, (uint8_t*)&colorGreenRaw, 2, 1000);
 	HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0xa, 1, (uint8_t*)&colorBlueRaw, 2, 1000);
 	HAL_I2C_Mem_Read(&hi2c2, VEML_ADDRESS, 0xb, 1, (uint8_t*)&colorWhiteRaw, 2, 1000);
 
-	colorRed = colorRedRaw*200/colorWhiteRaw;
-	colorGreen = colorGreenRaw*300/colorWhiteRaw;
-	colorBlue = colorBlueRaw*600/colorWhiteRaw;
-
-//	sprintf(buffer, "%u,%u,%u,%u\r\n", colorRedRaw, colorGreenRaw, colorBlueRaw, colorWhiteRaw);
-//	HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), 1000);
 	Color index = UNKNOWN;
 	TOutputData outputData;
-	index = Neural( ((float32_t)colorRedRaw)/10000, ((float32_t)colorGreenRaw)/10000, ((float32_t)colorBlueRaw)/10000, ((float32_t)colorWhiteRaw)/10000, &outputData );
+	index = Neural( ((float32_t)colorRedRaw), ((float32_t)colorGreenRaw), ((float32_t)colorBlueRaw), ((float32_t)colorWhiteRaw), &outputData );
 
-	sprintf(buffer, "%d %d %d %d %d %d %d %d\r\n", index, outputData.data[0], outputData.data[1], outputData.data[2],
-			outputData.data[3], outputData.data[4], outputData.data[5], outputData.data[6]);
+	sprintf(buffer, "%d %d %d\r\n", index, outputData.data[0], outputData.data[1]);
 	HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), 1000);
 	return index;
-/*
-	if (colorWhiteRaw > 6000)
-	{
-		if ((colorGreen-50) > colorRed)
-		{
-			return YELLOW;
-		}
-		else
-		{
-			return ORANGE;
-		}
-	}
-	else if ((colorWhiteRaw > 500) && (colorWhiteRaw < 2000))
-	{
-		return BROWN;
-	}
-	else if (colorWhiteRaw > 2000)
-	{
-		if ((colorRed > colorGreen) && (colorRed > colorBlue))
-		{
-			return RED;
-		}
-		else if ((colorGreen > colorBlue))
-		{
-			return GREEN;
-		}
-		else if ((colorBlue > colorGreen))
-		{
-			return BLUE;
-		}
-	}
-
-	return UNKNOWN;
-	*/
 }
 
 void SelectColor(Color color, bool all = true)
@@ -626,11 +558,11 @@ void SelectColor(Color color, bool all = true)
 		break;
 	case GREEN:
 		if (all) {
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 30);
 		}
 		else
 		{
-			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 42);
+			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 45);
 		}
 		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 90);
 		break;
@@ -646,11 +578,11 @@ void SelectColor(Color color, bool all = true)
 		break;
 	case YELLOW:
 		if (all) {
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 25);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 30);
 		}
 		else
 		{
-			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 42);
+			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 45);
 		}
 		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 40);
 		break;
@@ -670,12 +602,12 @@ void SelectColor(Color color, bool all = true)
 		}
 		else
 		{
-			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 62);
+			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 72);
 		}
 		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 68);
 		break;
 	case UNKNOWN:
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 52);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 57);
 		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 68);
 		break;
 	}
@@ -698,7 +630,7 @@ void StartDefaultTask(void const * argument)
   uint16_t dataI2c = 0x00;
   HAL_I2C_Mem_Write(&hi2c2, VEML_ADDRESS, 0x00, 1, (uint8_t*)&dataI2c, 2, 1000);
 
-  sprintf(buffer, "M&M color sorter started\r\n");
+  sprintf(buffer, "M&M\r\n");
   HAL_UART_Transmit(&huart1, (uint8_t*)buffer, 7, 1000);
   Color color = UNKNOWN;
 
